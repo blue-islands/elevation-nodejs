@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var http = require("http");
+var https = require("https");
 var querystring = require("querystring");
 var nCONST_NO_DATA = -500;
 function getElevation(worldCoordX, worldCoordY, zoom, demSource, dataRound) {
@@ -12,9 +13,9 @@ function getElevation(worldCoordX, worldCoordY, zoom, demSource, dataRound) {
     var px = PixelXint % 256;
     var PixelYint = Math.floor(PixelY);
     var py = PixelYint % 256;
-    var sFileName = "http://cyberjapandata.gsi.go.jp/xyz/".concat(demSource, "/").concat(zoom, "/").concat(TileX, "/").concat(TileY, ".txt");
+    var sFileName = "https://cyberjapandata.gsi.go.jp/xyz/".concat(demSource, "/").concat(zoom, "/").concat(TileX, "/").concat(TileY, ".txt");
     return new Promise(function (resolve, reject) {
-        http.get(sFileName, function (res) {
+        https.get(sFileName, function (res) {
             var data = '';
             res.on('data', function (chunk) {
                 data += chunk;

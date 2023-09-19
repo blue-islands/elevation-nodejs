@@ -1,4 +1,5 @@
-import * as http from 'http';
+import * as http from 'http'; 
+import * as https from 'https';
 import * as querystring from 'querystring';
 
 const nCONST_NO_DATA = -500;
@@ -12,10 +13,10 @@ function getElevation(worldCoordX: number, worldCoordY: number, zoom: number, de
     const px = PixelXint % 256;
     const PixelYint = Math.floor(PixelY);
     const py = PixelYint % 256;
-    const sFileName = `http://cyberjapandata.gsi.go.jp/xyz/${demSource}/${zoom}/${TileX}/${TileY}.txt`;
+    const sFileName = `https://cyberjapandata.gsi.go.jp/xyz/${demSource}/${zoom}/${TileX}/${TileY}.txt`;
 
     return new Promise<number | string>((resolve, reject) => {
-        http.get(sFileName, (res) => {
+        https.get(sFileName, (res) => {
             let data = '';
             res.on('data', (chunk) => {
                 data += chunk;
