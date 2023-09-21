@@ -9,7 +9,7 @@
 2. **プロジェクトのクローン**  
    ターミナルまたはコマンドプロンプトを開き、以下のコマンドを実行してプロジェクトをローカルにクローンします。
    ```
-   git clone [[リポジトリのURL]](https://github.com/blue-islands/elevation-nodejs.git)
+   git clone https://github.com/blue-islands/elevation-nodejs.git
    ```
 
 3. **依存関係のインストール**  
