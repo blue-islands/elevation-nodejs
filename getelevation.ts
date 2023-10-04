@@ -3,6 +3,7 @@ import * as https from 'https';
 import * as querystring from 'querystring';
 
 const NO_DATA = -500;
+const BASE_URL = 'https://cyberjapandata.gsi.go.jp/xyz';
 const SERVER_PORT = 8081;
 const R = 128 / Math.PI;
 
@@ -15,7 +16,7 @@ async function getElevation(worldCoordX: number, worldCoordY: number, zoom: numb
     const px = PixelXint % 256;
     const PixelYint = Math.floor(PixelY);
     const py = PixelYint % 256;
-    const sFileName = `https://cyberjapandata.gsi.go.jp/xyz/${demSource}/${zoom}/${TileX}/${TileY}.txt`;
+    const sFileName = `${BASE_URL}/${demSource}/${zoom}/${TileX}/${TileY}.txt`;
 
     return new Promise<number | string>((resolve, reject) => {
         https.get(sFileName, (res) => {
@@ -49,7 +50,7 @@ function calculateWorldCoords(lon: number, lat: number): [number, number] {
     return [worldCoordX, worldCoordY];
 }
 
-http.createServer(async (req, res) => {
+async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     try {
         const urlParams = querystring.parse(req.url!.split('?')[1] || '');
         const [worldCoordX, worldCoordY] = calculateWorldCoords(parseFloat(urlParams.lon as string), parseFloat(urlParams.lat as string));
@@ -80,8 +81,10 @@ http.createServer(async (req, res) => {
     } catch (error) {
         console.error(error);
         res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('Internal Server Error');
+        res.end('サーバーエラー');
     }
-}).listen(SERVER_PORT, () => {
-    console.log(`Server is running on port ${SERVER_PORT}`);
+}
+
+http.createServer(handleRequest).listen(SERVER_PORT, () => {
+    console.log(`サーバーがポート${SERVER_PORT}で稼働しています`);
 });

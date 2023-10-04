@@ -40,6 +40,7 @@ var http = require("http");
 var https = require("https");
 var querystring = require("querystring");
 var NO_DATA = -500;
+var BASE_URL = 'https://cyberjapandata.gsi.go.jp/xyz';
 var SERVER_PORT = 8081;
 var R = 128 / Math.PI;
 function getElevation(worldCoordX, worldCoordY, zoom, demSource, dataRound) {
@@ -54,7 +55,7 @@ function getElevation(worldCoordX, worldCoordY, zoom, demSource, dataRound) {
             px = PixelXint % 256;
             PixelYint = Math.floor(PixelY);
             py = PixelYint % 256;
-            sFileName = "https://cyberjapandata.gsi.go.jp/xyz/".concat(demSource, "/").concat(zoom, "/").concat(TileX, "/").concat(TileY, ".txt");
+            sFileName = "".concat(BASE_URL, "/").concat(demSource, "/").concat(zoom, "/").concat(TileX, "/").concat(TileY, ".txt");
             return [2 /*return*/, new Promise(function (resolve, reject) {
                     https.get(sFileName, function (res) {
                         var data = '';
@@ -87,53 +88,56 @@ function calculateWorldCoords(lon, lat) {
     var worldCoordY = (-1) * R / 2 * Math.log((1 + Math.sin(lat_rad)) / (1 - Math.sin(lat_rad))) + 128;
     return [worldCoordX, worldCoordY];
 }
-http.createServer(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var urlParams, _a, worldCoordX, worldCoordY, hsrc, elevation, sCallBack, sBody, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 6, , 7]);
-                urlParams = querystring.parse(req.url.split('?')[1] || '');
-                _a = calculateWorldCoords(parseFloat(urlParams.lon), parseFloat(urlParams.lat)), worldCoordX = _a[0], worldCoordY = _a[1];
-                hsrc = '5m（レーザ）';
-                return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 15, 'dem5a', 1)];
-            case 1:
-                elevation = _b.sent();
-                if (!(elevation === NO_DATA.toString())) return [3 /*break*/, 3];
-                hsrc = '5m（写真測量）';
-                return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 15, 'dem5b', 1)];
-            case 2:
-                elevation = _b.sent();
-                _b.label = 3;
-            case 3:
-                if (!(elevation === NO_DATA.toString())) return [3 /*break*/, 5];
-                hsrc = '10m';
-                return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 14, 'dem', 0)];
-            case 4:
-                elevation = _b.sent();
-                _b.label = 5;
-            case 5:
-                if (elevation === NO_DATA.toString()) {
-                    elevation = "-----";
-                    hsrc = "-----";
-                }
-                sCallBack = urlParams.callback || '';
-                sBody = "{\"elevation\": ".concat(isNaN(Number(elevation)) ? "\"".concat(elevation, "\"") : elevation, ", \"hsrc\": \"").concat(hsrc, "\"}");
-                if (!urlParams.outtype) {
-                    sBody = "".concat(sCallBack, "( ").concat(sBody, " )");
-                }
-                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(sBody);
-                return [3 /*break*/, 7];
-            case 6:
-                error_1 = _b.sent();
-                console.error(error_1);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end('Internal Server Error');
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
+function handleRequest(req, res) {
+    return __awaiter(this, void 0, void 0, function () {
+        var urlParams, _a, worldCoordX, worldCoordY, hsrc, elevation, sCallBack, sBody, error_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 6, , 7]);
+                    urlParams = querystring.parse(req.url.split('?')[1] || '');
+                    _a = calculateWorldCoords(parseFloat(urlParams.lon), parseFloat(urlParams.lat)), worldCoordX = _a[0], worldCoordY = _a[1];
+                    hsrc = '5m（レーザ）';
+                    return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 15, 'dem5a', 1)];
+                case 1:
+                    elevation = _b.sent();
+                    if (!(elevation === NO_DATA.toString())) return [3 /*break*/, 3];
+                    hsrc = '5m（写真測量）';
+                    return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 15, 'dem5b', 1)];
+                case 2:
+                    elevation = _b.sent();
+                    _b.label = 3;
+                case 3:
+                    if (!(elevation === NO_DATA.toString())) return [3 /*break*/, 5];
+                    hsrc = '10m';
+                    return [4 /*yield*/, getElevation(worldCoordX, worldCoordY, 14, 'dem', 0)];
+                case 4:
+                    elevation = _b.sent();
+                    _b.label = 5;
+                case 5:
+                    if (elevation === NO_DATA.toString()) {
+                        elevation = "-----";
+                        hsrc = "-----";
+                    }
+                    sCallBack = urlParams.callback || '';
+                    sBody = "{\"elevation\": ".concat(isNaN(Number(elevation)) ? "\"".concat(elevation, "\"") : elevation, ", \"hsrc\": \"").concat(hsrc, "\"}");
+                    if (!urlParams.outtype) {
+                        sBody = "".concat(sCallBack, "( ").concat(sBody, " )");
+                    }
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(sBody);
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _b.sent();
+                    console.error(error_1);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('サーバーエラー');
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
+            }
+        });
     });
-}); }).listen(SERVER_PORT, function () {
-    console.log("Server is running on port ".concat(SERVER_PORT));
+}
+http.createServer(handleRequest).listen(SERVER_PORT, function () {
+    console.log("\u30B5\u30FC\u30D0\u30FC\u304C\u30DD\u30FC\u30C8".concat(SERVER_PORT, "\u3067\u7A3C\u50CD\u3057\u3066\u3044\u307E\u3059"));
 });
